@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CartPilot AI – Smart Shopping Assistant</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #dbeafe;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,.08);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      border-bottom: 1px solid var(--gray-200);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary), #7c3aed);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: white;
+    }
+
+    .header-title h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .header-title p {
+      font-size: 12px;
+      color: var(--gray-500);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      background: var(--gray-100);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--gray-600);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-icon:hover {
+      background: var(--gray-200);
+      color: var(--gray-800);
+    }
+
+    /* Chat Area */
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      display: flex;
+      gap: 10px;
+      max-width: 85%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .message.bot .message-avatar {
+      background: linear-gradient(135deg, var(--primary), #7c3aed);
+      color: white;
+    }
+
+    .message.user .message-avatar {
+      background: var(--gray-200);
+    }
+
+    .message-bubble {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .message.bot .message-bubble {
+      background: white;
+      border: 1px solid var(--gray-200);
+      box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    }
+
+    .message.user .message-bubble {
+      background: var(--primary);
+      color: white;
+    }
+
+    .message-bubble p { margin-bottom: 8px; }
+    .message-bubble p:last-child { margin-bottom: 0; }
+    .message-bubble strong { font-weight: 600; }
+    .message-bubble ul, .message-bubble ol { margin: 4px 0 8px 20px; }
+    .message-bubble li { margin-bottom: 2px; }
+
+    /* Order Card */
+    .order-card {
+      background: white;
+      border: 2px solid var(--primary-light);
+      border-radius: var(--radius);
+      padding: 20px;
+      max-width: 420px;
+      animation: fadeIn 0.3s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .order-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      font-weight: 600;
+      color: var(--primary-dark);
+      font-size: 15px;
+    }
+
+    .order-items { margin-bottom: 16px; }
+
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 14px;
+    }
+
+    .order-item:last-child { border-bottom: none; }
+
+    .order-item-name { color: var(--gray-700); }
+    .order-item-qty { color: var(--gray-500); font-size: 13px; }
+    .order-item-price { font-weight: 500; color: var(--gray-800); }
+
+    .order-total {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0 0;
+      border-top: 2px solid var(--gray-200);
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--gray-900);
+    }
+
+    .order-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      flex: 1;
+    }
+
+    .btn-primary:hover { background: var(--primary-dark); }
+
+    .btn-outline {
+      background: white;
+      color: var(--gray-600);
+      border: 1px solid var(--gray-300);
+    }
+
+    .btn-outline:hover {
+      background: var(--gray-50);
+      border-color: var(--gray-400);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: flex;
+      gap: 10px;
+      max-width: 85%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+      padding: 16px;
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gray-400);
+      animation: typingBounce 1.4s ease-in-out infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* Input Area */
+    .input-area {
+      background: white;
+      border-top: 1px solid var(--gray-200);
+      padding: 16px 20px;
+      flex-shrink: 0;
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 10px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .input-field {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid var(--gray-200);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+    }
+
+    .input-field:focus {
+      border-color: var(--primary);
+    }
+
+    .input-field::placeholder {
+      color: var(--gray-400);
+    }
+
+    .send-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0 20px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+    }
+
+    .send-btn:hover { background: var(--primary-dark); }
+    .send-btn:disabled { background: var(--gray-300); cursor: not-allowed; }
+
+    /* Quick Actions */
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .quick-action {
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--gray-600);
+    }
+
+    .quick-action:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary-dark);
+    }
+
+    /* Welcome message */
+    .welcome {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--gray-500);
+    }
+
+    .welcome h2 {
+      font-size: 24px;
+      color: var(--gray-800);
+      margin-bottom: 8px;
+    }
+
+    .welcome p {
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    /* Status badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-badge.paid { background: var(--success-light); color: var(--success); }
+    .status-badge.pending { background: #fef3c7; color: #d97706; }
+    .status-badge.failed { background: #fee2e2; color: var(--danger); }
+
+    /* Loading overlay for checkout */
+    .checkout-loading {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .checkout-loading-card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== CartPilot Voice ===== */
+
+    /* Mic button */
+    .mic-btn {
+      background: var(--gray-100);
+      color: var(--gray-500);
+      border: 2px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 0 14px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.25s;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .mic-btn:hover {
+      background: var(--gray-200);
+      color: var(--gray-700);
+    }
+
+    .mic-btn.listening {
+      background: #fee2e2;
+      border-color: #ef4444;
+      color: #ef4444;
+      animation: micPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes micPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.4); }
+      50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+    }
+
+    .mic-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      animation: none;
+    }
+
+    /* Speaker toggle in header */
+    .speaker-btn {
+      background: var(--gray-100);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--gray-600);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .speaker-btn:hover {
+      background: var(--gray-200);
+      color: var(--gray-800);
+    }
+
+    .speaker-btn.muted {
+      color: var(--danger);
+    }
+
+    /* Live transcript bar */
+    .voice-transcript-bar {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      border-bottom: 1px solid #f59e0b;
+      padding: 10px 20px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .voice-transcript-bar.active {
+      display: flex;
+    }
+
+    .voice-pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: micPulse 1.5s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    .voice-transcript-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #92400e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+
+    .voice-transcript-text {
+      font-size: 14px;
+      color: #78350f;
+      flex: 1;
+      min-height: 20px;
+      font-style: italic;
+    }
+
+    .voice-transcript-text .interim {
+      color: #b45309;
+      opacity: 0.7;
+    }
+
+    .voice-stop-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .voice-stop-btn:hover {
+      background: #dc2626;
+    }
+
+    /* Voice not supported banner */
+    .voice-unsupported {
+      display: none;
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #92400e;
+      margin: 8px 20px 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .message { max-width: 92%; }
+      .order-card { max-width: 100%; }
+      .header-title p { display: none; }
+      .voice-transcript-bar { padding: 8px 12px; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">🛒</div>
+      <div class="header-title">
+        <h1>CartPilot AI</h1>
+        <p>Your smart shopping assistant</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="speaker-btn" id="voiceMuteBtn" onclick="toggleVoiceMute()" title="CartPilot Voice - Mute/unmute speech">
+        <span id="voiceMuteIcon">🔊</span> <span id="voiceMuteLabel">Voice On</span>
+      </button>
+      <button class="btn-icon" onclick="resetChat()" title="New conversation">
+        🔄 New Chat
+      </button>
+    </div>
+  </div>
+
+  <!-- CartPilot Voice Live Transcript Bar -->
+  <div class="voice-transcript-bar" id="voiceTranscriptBar">
+    <div class="voice-pulse-dot"></div>
+    <span class="voice-transcript-label">CartPilot Voice:</span>
+    <span class="voice-transcript-text" id="voiceTranscriptText">Listening...</span>
+    <button class="voice-stop-btn" onclick="stopListening(true)" type="button">Done</button>
+  </div>
+
+  <!-- CartPilot Voice Unsupported Banner -->
+  <div class="voice-unsupported" id="voiceUnsupported">
+    🎙️ <strong>CartPilot Voice:</strong> Speech recognition is not supported in this browser. Please use Google Chrome, Microsoft Edge, or Safari, or type your message below.
+  </div>
+
+  <!-- Chat Messages -->
+  <div class="chat-container" id="chatContainer">
+    <div class="welcome" id="welcome">
+      <h2>👋 Welcome to CartPilot AI!</h2>
+      <p>I'm your AI shopping assistant. Tell me what you'd like to order, or ask me what's available!</p>
+      <div class="quick-actions">
+        <button class="quick-action" onclick="sendQuickAction('What products do you have?')">🛍️ Browse products</button>
+        <button class="quick-action" onclick="sendQuickAction('I\'d like to order some candles')">🕯️ Order candles</button>
+        <button class="quick-action" onclick="sendQuickAction('Do you have any soap sets?')">🧼 Check soap sets</button>
+        <button class="quick-action" onclick="sendQuickAction('I need a tote bag')">👜 Get a tote bag</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-area">
+    <div class="input-wrapper">
+      <textarea
+        class="input-field"
+        id="messageInput"
+        placeholder="Type your message or click the mic to speak..."
+        rows="1"
+        onkeydown="handleKeyDown(event)"
+        oninput="autoResize(this)"
+      ></textarea>
+      <button class="mic-btn" id="micBtn" onclick="toggleListening()" title="CartPilot Voice - Speak to shop" type="button">
+        🎙️
+      </button>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send message">
+        ➤
+      </button>
+    </div>
+  </div>
+
+  <!-- Checkout Loading Overlay -->
+  <div class="checkout-loading" id="checkoutLoading" style="display:none">
+    <div class="checkout-loading-card">
+      <div class="spinner"></div>
+      <p style="font-weight:600;color:var(--gray-800)">Creating your checkout...</p>
+      <p style="color:var(--gray-500);font-size:13px;margin-top:4px">You'll be redirected to PayPal shortly</p>
+    </div>
+  </div>
+
+<script>
+  const SESSION_ID = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  let isProcessing = false;
+  let currentOrderId = null;
+
+  // Auto-resize textarea
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function scrollToBottom() {
+    const container = document.getElementById('chatContainer');
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function addMessage(content, isUser) {
+    // Remove welcome
+    const welcome = document.getElementById('welcome');
+    if (welcome) welcome.remove();
+
+    const container = document.getElementById('chatContainer');
+    const div = document.createElement('div');
+    div.className = `message ${isUser ? 'user' : 'bot'}`;
+    div.innerHTML = `
+      <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
+      <div class="message-bubble">${isUser ? escapeHtml(content) : formatMarkdown(content)}</div>
+    `;
+    container.appendChild(div);
+    scrollToBottom();
+  }
+
+  function showTyping() {
+    const container = document.getElementById('chatContainer');
+    const div = document.createElement('div');
+    div.className = 'typing-indicator';
+    div.id = 'typingIndicator';
+    div.innerHTML = `
+      <div class="message-avatar" style="background:linear-gradient(135deg,var(--primary),#7c3aed);color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px">🤖</div>
+      <div class="typing-dots">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    `;
+    container.appendChild(div);
+    scrollToBottom();
+  }
+
+  function hideTyping() {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+  }
+
+  function showOrderCard(order, checkoutReady = false) {
+    // Remove any previous order card
+    const existing = document.getElementById('orderCard');
+    if (existing) existing.remove();
+
+    const container = document.getElementById('chatContainer');
+    const div = document.createElement('div');
+    div.className = 'order-card';
+    div.id = 'orderCard';
+    div.innerHTML = `
+      <div class="order-card-header">
+        <span>📋 Order Summary</span>
+        <span class="status-badge ${order.status === 'paid' ? 'paid' : 'pending'}">${checkoutReady ? 'Confirmed' : 'Review & Confirm'}</span>
+      </div>
+      <div class="order-items">
+        ${order.items.map(i => `
+          <div class="order-item">
+            <div>
+              <div class="order-item-name">${escapeHtml(i.name)}</div>
+              <div class="order-item-qty">Qty: ${i.quantity} × $${i.price.toFixed(2)}</div>
+            </div>
+            <div class="order-item-price">$${i.subtotal.toFixed(2)}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="order-total">
+        <span>Total</span>
+        <span>$${order.total.toFixed(2)}</span>
+      </div>
+      <div class="order-actions">
+        <button class="btn btn-outline" onclick="sendQuickAction('I want to change my order')">✏️ Modify</button>
+        <button class="btn btn-primary" onclick="confirmOrder()">${checkoutReady ? '💳 Pay with PayPal' : '✅ Confirm & Pay'}</button>
+      </div>
+    `;
+    container.appendChild(div);
+    scrollToBottom();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function formatMarkdown(text) {
+    if (!text) return '';
+    // Simple markdown-like formatting
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`(.*?)`/g, '<code style="background:var(--gray-100);padding:1px 4px;border-radius:3px;font-size:13px">$1</code>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n- /g, '<br>• ')
+      .replace(/\n(\d+)\. /g, '<br>$1. ')
+      .replace(/\n/g, '<br>')
+      .replace(/^(.*)$/, '<p>$1</p>');
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    if (!message || isProcessing) return;
+
+    isProcessing = true;
+    document.getElementById('sendBtn').disabled = true;
+
+    addMessage(message, true);
+    input.value = '';
+    autoResize(input);
+    showTyping();
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, sessionId: SESSION_ID }),
+      });
+
+      const data = await res.json();
+      hideTyping();
+
+      if (data.error) {
+        addMessage('Sorry, something went wrong. Please try again.', false);
+        speakReply('Sorry, something went wrong. Please try again.');
+      } else {
+        addMessage(data.response, false);
+        speakReply(data.response);
+
+        if (data.orderId) {
+          currentOrderId = data.orderId;
+        }
+
+        // Show or update order card if an order is active
+        if (data.order) {
+          showOrderCard(data.order, data.checkoutReady);
+        }
+      }
+    } catch (err) {
+      hideTyping();
+      addMessage('Connection error. Please check your internet and try again.', false);
+    } finally {
+      isProcessing = false;
+      document.getElementById('sendBtn').disabled = false;
+      input.focus();
+    }
+  }
+
+  function sendQuickAction(text) {
+    document.getElementById('messageInput').value = text;
+    sendMessage();
+  }
+
+  async function confirmOrder() {
+    if (!currentOrderId) return;
+
+    document.getElementById('checkoutLoading').style.display = 'flex';
+
+    try {
+      // Step 1: Confirm the order with the AI
+      const confirmRes = await fetch('/api/chat/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: SESSION_ID }),
+      });
+
+      const confirmData = await confirmRes.json();
+
+      // Step 2: Create PayPal checkout
+      const checkoutRes = await fetch(`/api/checkout/${currentOrderId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const checkoutData = await checkoutRes.json();
+
+      if (checkoutData.approvalUrl) {
+        // Redirect to PayPal
+        window.location.href = checkoutData.approvalUrl;
+      } else {
+        document.getElementById('checkoutLoading').style.display = 'none';
+        addMessage(checkoutData.error || 'Failed to create checkout. Please try again.', false);
+      }
+    } catch (err) {
+      document.getElementById('checkoutLoading').style.display = 'none';
+      addMessage('Failed to create checkout. Please try again.', false);
+    }
+  }
+
+  async function resetChat() {
+    stopListening(false);
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    try {
+      await fetch('/api/chat/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: SESSION_ID }),
+      });
+    } catch (_) {}
+
+    const container = document.getElementById('chatContainer');
+    container.innerHTML = `
+      <div class="welcome" id="welcome">
+        <h2>👋 Welcome to CartPilot AI!</h2>
+        <p>I'm your AI shopping assistant. Tell me what you'd like to order, or ask me what's available!</p>
+        <div class="quick-actions">
+          <button class="quick-action" onclick="sendQuickAction('What products do you have?')">🛍️ Browse products</button>
+          <button class="quick-action" onclick="sendQuickAction('I\\'d like to order some candles')">🕯️ Order candles</button>
+          <button class="quick-action" onclick="sendQuickAction('Do you have any soap sets?')">🧼 Check soap sets</button>
+          <button class="quick-action" onclick="sendQuickAction('I need a tote bag')">👜 Get a tote bag</button>
+        </div>
+      </div>
+    `;
+    currentOrderId = null;
+  }
+
+  // ===== CartPilot Voice Implementation =====
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const isSpeechRecognitionSupported = Boolean(SpeechRecognition);
+  const isSpeechSynthesisSupported = 'speechSynthesis' in window;
+
+  let recognition = null;
+  let isListening = false;
+  let speechSilenceTimer = null;
+  let finalVoiceText = '';
+
+  // Voice Mute state persisted in localStorage
+  let isVoiceMuted = localStorage.getItem('cartpilot_voice_muted') === 'true';
+
+  function updateMuteButtonUI() {
+    const btn = document.getElementById('voiceMuteBtn');
+    const icon = document.getElementById('voiceMuteIcon');
+    const label = document.getElementById('voiceMuteLabel');
+    if (!btn || !icon || !label) return;
+
+    if (isVoiceMuted) {
+      btn.classList.add('muted');
+      icon.textContent = '🔇';
+      label.textContent = 'Voice Muted';
+      btn.title = 'CartPilot Voice is muted. Click to unmute.';
+    } else {
+      btn.classList.remove('muted');
+      icon.textContent = '🔊';
+      label.textContent = 'Voice On';
+      btn.title = 'CartPilot Voice is active. Click to mute.';
+    }
+  }
+
+  function toggleVoiceMute() {
+    isVoiceMuted = !isVoiceMuted;
+    localStorage.setItem('cartpilot_voice_muted', isVoiceMuted ? 'true' : 'false');
+    updateMuteButtonUI();
+
+    if (isVoiceMuted && isSpeechSynthesisSupported) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
+  // Clean markdown and symbols for natural speech synthesis
+  function cleanTextForSpeech(text) {
+    if (!text) return '';
+    return text
+      // Convert markdown links [text](url) -> text
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      // Remove bold/italics markers
+      .replace(/[*_#`~]/g, '')
+      // Convert bullet points to pauses
+      .replace(/^\s*[-•]\s*/gm, ', ')
+      // Clean dollar signs for smoother pronunciation: $14.99 -> 14 dollars and 99 cents
+      .replace(/\$(\d+)\.(\d{2})/g, '$1 dollars and $2 cents')
+      .replace(/\$(\d+)/g, '$1 dollars')
+      // Clean emojis and excess whitespace
+      .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function speakReply(text) {
+    if (isVoiceMuted || !isSpeechSynthesisSupported || !text) return;
+
+    try {
+      window.speechSynthesis.cancel(); // Stop any previous speech
+      const cleaned = cleanTextForSpeech(text);
+      if (!cleaned) return;
+
+      const utterance = new SpeechSynthesisUtterance(cleaned);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.lang = 'en-US';
+
+      // Pick a natural English voice if available
+      const voices = window.speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        const preferredVoice = voices.find(v => (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Zira') || v.name.includes('English')) && v.lang.startsWith('en'))
+          || voices.find(v => v.lang.startsWith('en'));
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+      }
+
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.warn('[CartPilot Voice] Speech synthesis error:', err);
+    }
+  }
+
+  // Ensure voices are loaded (needed in Chrome)
+  if (isSpeechSynthesisSupported && window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      // voices cache refreshed
+    };
+  }
+
+  function initSpeechRecognition() {
+    if (!isSpeechRecognitionSupported) {
+      const micBtn = document.getElementById('micBtn');
+      if (micBtn) {
+        micBtn.title = 'CartPilot Voice not supported in this browser (click for details)';
+      }
+      return;
+    }
+
+    try {
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        isListening = true;
+        finalVoiceText = '';
+        const micBtn = document.getElementById('micBtn');
+        const bar = document.getElementById('voiceTranscriptBar');
+        const textEl = document.getElementById('voiceTranscriptText');
+
+        if (micBtn) {
+          micBtn.classList.add('listening');
+          micBtn.title = 'Listening... Click to stop or speak your order';
+        }
+        if (bar) bar.classList.add('active');
+        if (textEl) textEl.innerHTML = 'Listening for your order...';
+
+        // Stop any ongoing assistant speech so mic doesn't capture it
+        if (isSpeechSynthesisSupported) {
+          window.speechSynthesis.cancel();
+        }
+      };
+
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let currentFinal = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            currentFinal += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        if (currentFinal) {
+          finalVoiceText += (finalVoiceText ? ' ' : '') + currentFinal.trim();
+        }
+
+        const displayedText = finalVoiceText + (interimTranscript ? ` <span class="interim">${interimTranscript}</span>` : '');
+        const textEl = document.getElementById('voiceTranscriptText');
+        if (textEl) textEl.innerHTML = displayedText || 'Listening...';
+
+        // Also live mirror into message input field
+        const input = document.getElementById('messageInput');
+        if (input) {
+          input.value = finalVoiceText + (interimTranscript ? (finalVoiceText ? ' ' : '') + interimTranscript : '');
+          autoResize(input);
+        }
+
+        // Auto-submit after silence (1.5 seconds) if we have final text
+        clearTimeout(speechSilenceTimer);
+        if (finalVoiceText.trim()) {
+          speechSilenceTimer = setTimeout(() => {
+            if (isListening) {
+              stopListening(true);
+            }
+          }, 1500);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn('[CartPilot Voice] Recognition error:', event.error);
+        if (event.error === 'not-allowed') {
+          alert('CartPilot Voice: Microphone permission was denied. Please allow microphone access in your browser to speak with CartPilot.');
+        }
+        stopListening(false);
+      };
+
+      recognition.onend = () => {
+        if (isListening) {
+          stopListening(false);
+        }
+      };
+    } catch (err) {
+      console.warn('[CartPilot Voice] Failed to initialize recognition:', err);
+    }
+  }
+
+  function toggleListening() {
+    if (!isSpeechRecognitionSupported) {
+      const unsupported = document.getElementById('voiceUnsupported');
+      if (unsupported) {
+        unsupported.style.display = 'block';
+        setTimeout(() => { unsupported.style.display = 'none'; }, 6000);
+      }
+      return;
+    }
+
+    if (isListening) {
+      stopListening(true);
+    } else {
+      startListening();
+    }
+  }
+
+  function startListening() {
+    if (!recognition) initSpeechRecognition();
+    if (!recognition) return;
+
+    try {
+      recognition.start();
+    } catch (err) {
+      console.warn('[CartPilot Voice] Could not start speech recognition:', err);
+    }
+  }
+
+  function stopListening(shouldSend = false) {
+    isListening = false;
+    clearTimeout(speechSilenceTimer);
+
+    const micBtn = document.getElementById('micBtn');
+    const bar = document.getElementById('voiceTranscriptBar');
+
+    if (micBtn) {
+      micBtn.classList.remove('listening');
+      micBtn.title = 'CartPilot Voice - Speak to shop';
+    }
+    if (bar) bar.classList.remove('active');
+
+    if (recognition) {
+      try { recognition.stop(); } catch (_) {}
+    }
+
+    if (shouldSend) {
+      const input = document.getElementById('messageInput');
+      const textToSend = input ? input.value.trim() : finalVoiceText.trim();
+      if (textToSend && !isProcessing) {
+        sendMessage();
+      }
+    }
+  }
+
+  // Initialize CartPilot Voice state on load
+  updateMuteButtonUI();
+  initSpeechRecognition();
+
+  // Focus input on load
+  document.getElementById('messageInput').focus();
+</script>
+</body>
+</html>

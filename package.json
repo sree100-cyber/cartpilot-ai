@@ -1,0 +1,19 @@
+{
+  "name": "cartpilot-ai",
+  "version": "1.0.0",
+  "description": "CartPilot AI – AI-powered sales and checkout agent for small online sellers",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/db/seed.js"
+  },
+  "keywords": ["paypal", "ai", "checkout", "gemini", "hackathon"],
+  "license": "MIT",
+  "dependencies": {
+    "sql.js": "^1.11.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.1",
+    "uuid": "^11.0.3"
+  }
+}

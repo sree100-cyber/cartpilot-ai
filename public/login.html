@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merchant Login – CartPilot AI</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #dbeafe;
+      --purple: #7c3aed;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --radius: 12px;
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
+      color: var(--gray-800);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--gray-200);
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .logo {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      color: white;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.25);
+    }
+
+    .brand h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+
+    .brand p {
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 13px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn-submit:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .error-box {
+      background: var(--danger-light);
+      border: 1px solid #fecaca;
+      color: var(--danger);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 18px;
+      display: none;
+    }
+
+    .demo-hint {
+      background: #eff6ff;
+      border: 1px dashed #bfdbfe;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      color: #1e40af;
+      margin-top: 24px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .demo-hint code {
+      background: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      border: 1px solid #dbeafe;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--gray-500);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-card">
+    <div class="brand">
+      <div class="logo">📊</div>
+      <h1>Seller Portal</h1>
+      <p>Sign in to access your CartPilot orders & analytics</p>
+    </div>
+
+    <div class="error-box" id="errorBox">
+      Invalid username or password.
+    </div>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          class="form-input"
+          placeholder="admin"
+          value="admin"
+          required
+          autofocus
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          class="form-input"
+          placeholder="••••••••"
+          value="cartpilot"
+          required
+        />
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">
+        Sign In to Dashboard
+      </button>
+    </form>
+
+    <div class="demo-hint">
+      <strong>Demo Credentials:</strong><br>
+      Username: <code>admin</code> &bull; Password: <code>cartpilot</code>
+    </div>
+
+    <a href="/" class="back-link">
+      &larr; Return to Customer Store
+    </a>
+  </div>
+
+<script>
+  async function handleLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const errorBox = document.getElementById('errorBox');
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    errorBox.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+
+    try {
+      const res = await fetch('/api/seller/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        window.location.href = '/seller';
+      } else {
+        errorBox.textContent = data.error || 'Invalid credentials. Please try again.';
+        errorBox.style.display = 'block';
+      }
+    } catch (err) {
+      errorBox.textContent = 'Connection error. Please try again.';
+      errorBox.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Sign In to Dashboard';
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Dashboard – CartPilot AI</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #dbeafe;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --warning: #f59e0b;
+      --warning-light: #fef3c7;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --purple: #7c3aed;
+      --purple-light: #ede9fe;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      border-bottom: 1px solid var(--gray-200);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: white;
+    }
+
+    .header-title h1 { font-size: 18px; font-weight: 700; color: var(--gray-900); }
+    .header-title p { font-size: 12px; color: var(--gray-500); }
+
+    .header-actions { display: flex; gap: 8px; }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-outline { background: white; color: var(--gray-600); border: 1px solid var(--gray-300); }
+    .btn-outline:hover { background: var(--gray-50); border-color: var(--gray-400); }
+    .btn-danger { background: var(--danger-light); color: var(--danger); }
+    .btn-danger:hover { background: #fecaca; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Main Content */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card .stat-label {
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-bottom: 4px;
+    }
+
+    .stat-card .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .stat-card .stat-icon {
+      float: right;
+      font-size: 24px;
+      opacity: 0.6;
+    }
+
+    .stat-card.revenue .stat-value { color: var(--success); }
+    .stat-card.pending .stat-value { color: var(--warning); }
+
+    /* AI Summary */
+    .summary-card {
+      background: linear-gradient(135deg, var(--primary-light), var(--purple-light));
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .summary-card h3 {
+      font-size: 16px;
+      color: var(--gray-800);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .summary-content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--gray-700);
+      white-space: pre-wrap;
+    }
+
+    .summary-content ul { margin: 8px 0 8px 20px; }
+    .summary-content li { margin-bottom: 4px; }
+    .summary-loading { text-align: center; padding: 20px; color: var(--gray-500); }
+
+    /* Orders Table */
+    .orders-section {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .orders-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .orders-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .orders-table th {
+      text-align: left;
+      padding: 12px 16px;
+      background: var(--gray-50);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .orders-table td {
+      padding: 14px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--gray-100);
+      vertical-align: top;
+    }
+
+    .orders-table tr:hover { background: var(--gray-50); }
+
+    .order-id-cell {
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--gray-500);
+    }
+
+    .order-items-cell {
+      max-width: 280px;
+    }
+
+    .order-item-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      padding: 2px 0;
+    }
+
+    .order-item-name { color: var(--gray-700); }
+    .order-item-detail { color: var(--gray-400); white-space: nowrap; }
+
+    /* Status badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge-paid { background: var(--success-light); color: var(--success); }
+    .badge-pending_payment, .badge-awaiting_confirmation { background: var(--warning-light); color: #b45309; }
+    .badge-draft { background: var(--gray-100); color: var(--gray-500); }
+    .badge-failed { background: var(--danger-light); color: var(--danger); }
+    .badge-refunded { background: var(--purple-light); color: var(--purple); }
+
+    .total-cell {
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .time-cell {
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--gray-400);
+    }
+
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* Confirmation dialog */
+    .dialog-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .dialog {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 16px 48px rgba(0,0,0,.2);
+    }
+
+    .dialog h3 { margin-bottom: 8px; font-size: 18px; }
+    .dialog p { color: var(--gray-500); margin-bottom: 24px; font-size: 14px; }
+    .dialog-actions { display: flex; gap: 12px; justify-content: center; }
+    .dialog-actions .btn { min-width: 100px; justify-content: center; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Toast notifications */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      color: white;
+      z-index: 100;
+      animation: slideUp 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+      box-shadow: 0 8px 24px rgba(0,0,0,.2);
+    }
+
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--danger); }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateY(-10px); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .main { padding: 16px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .orders-table { display: block; overflow-x: auto; }
+      .header-title p { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">📊</div>
+      <div class="header-title">
+        <h1>Seller Dashboard</h1>
+        <p>CartPilot AI – Order Management</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="loadOrders()">🔄 Refresh</button>
+      <a href="/" target="_blank" class="btn btn-outline">🛒 View Store ↗</a>
+      <button class="btn btn-outline" onclick="handleLogout()" style="color:var(--danger)">🚪 Log Out</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-value" id="statTotal">–</div>
+      </div>
+      <div class="stat-card revenue">
+        <div class="stat-icon">💰</div>
+        <div class="stat-label">Revenue (Paid)</div>
+        <div class="stat-value" id="statRevenue">–</div>
+      </div>
+      <div class="stat-card pending">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-label">Pending</div>
+        <div class="stat-value" id="statPending">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">↩️</div>
+        <div class="stat-label">Refunded</div>
+        <div class="stat-value" id="statRefunded">–</div>
+      </div>
+    </div>
+
+    <!-- AI Summary -->
+    <div class="summary-card" id="summaryCard">
+      <h3>✨ AI Business Summary</h3>
+      <div id="summaryContent" class="summary-content">
+        <button class="btn btn-primary" onclick="generateSummary()">🤖 Generate AI Summary</button>
+      </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="orders-section">
+      <div class="orders-header">
+        <h2>📋 Orders</h2>
+        <span id="orderCount" style="color:var(--gray-500);font-size:13px"></span>
+      </div>
+      <div id="ordersBody">
+        <div class="empty-state">
+          <div class="icon">📦</div>
+          <p>Loading orders...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Refund Confirmation Dialog -->
+  <div class="dialog-overlay" id="refundDialog" style="display:none">
+    <div class="dialog">
+      <h3>🔄 Confirm Refund</h3>
+      <p>Are you sure you want to refund this order? This action cannot be undone.</p>
+      <div class="dialog-actions">
+        <button class="btn btn-outline" onclick="closeRefundDialog()">Cancel</button>
+        <button class="btn btn-danger" id="refundConfirmBtn" onclick="processRefund()">Refund</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  let allOrders = [];
+  let refundOrderId = null;
+
+  async function loadOrders() {
+    try {
+      const res = await fetch('/api/orders');
+      allOrders = await res.json();
+      renderOrders();
+      updateStats();
+    } catch (err) {
+      showToast('Failed to load orders', 'error');
+    }
+  }
+
+  function updateStats() {
+    const total = allOrders.length;
+    const paid = allOrders.filter(o => o.status === 'paid');
+    const pending = allOrders.filter(o => ['pending_payment', 'awaiting_confirmation', 'draft'].includes(o.status));
+    const refunded = allOrders.filter(o => o.status === 'refunded');
+    const revenue = paid.reduce((sum, o) => sum + o.total, 0);
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statRevenue').textContent = '$' + revenue.toFixed(2);
+    document.getElementById('statPending').textContent = pending.length;
+    document.getElementById('statRefunded').textContent = refunded.length;
+    document.getElementById('orderCount').textContent = `${total} order${total !== 1 ? 's' : ''}`;
+  }
+
+  function renderOrders() {
+    const container = document.getElementById('ordersBody');
+
+    if (allOrders.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">📭</div>
+          <p>No orders yet. Send customers to the chat to start selling!</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${allOrders.map(order => `
+            <tr>
+              <td class="order-id-cell">${order.id.slice(0, 8)}…</td>
+              <td class="order-items-cell">
+                ${order.items.map(i => `
+                  <div class="order-item-line">
+                    <span class="order-item-name">${escapeHtml(i.name)}</span>
+                    <span class="order-item-detail">×${i.quantity} · $${(i.price * i.quantity).toFixed(2)}</span>
+                  </div>
+                `).join('')}
+              </td>
+              <td class="total-cell">$${order.total.toFixed(2)}</td>
+              <td><span class="badge badge-${order.status}">${formatStatus(order.status)}</span></td>
+              <td class="time-cell">${formatDate(order.created_at)}</td>
+              <td>
+                ${order.status === 'paid' ? `
+                  <button class="btn btn-danger btn-sm" onclick="showRefundDialog('${order.id}')">↩️ Refund</button>
+                ` : '–'}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function formatStatus(status) {
+    const labels = {
+      draft: '📝 Draft',
+      awaiting_confirmation: '⏳ Awaiting Confirmation',
+      pending_payment: '💳 Pending Payment',
+      paid: '✅ Paid',
+      failed: '❌ Failed',
+      refunded: '↩️ Refunded',
+    };
+    return labels[status] || status;
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '–';
+    const d = new Date(dateStr + 'Z');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' +
+           d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // AI Summary
+  async function generateSummary() {
+    const el = document.getElementById('summaryContent');
+    el.innerHTML = '<div class="summary-loading"><div style="display:inline-block;width:24px;height:24px;border:3px solid var(--gray-200);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite"></div><p style="margin-top:8px">Generating AI summary...</p></div>';
+
+    try {
+      const res = await fetch('/api/summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      el.innerHTML = formatSummary(data.summary || data.error);
+    } catch (err) {
+      el.innerHTML = '<p style="color:var(--danger)">Failed to generate summary. Make sure GEMINI_API_KEY is set.</p>';
+    }
+  }
+
+  function formatSummary(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/^### (.*$)/gm, '<h4 style="margin:12px 0 4px;font-size:14px">$1</h4>')
+      .replace(/^## (.*$)/gm, '<h3 style="margin:12px 0 4px;font-size:15px">$1</h3>')
+      .replace(/^- (.*$)/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+      .replace(/\n/g, '<br>');
+  }
+
+  // Refund
+  function showRefundDialog(orderId) {
+    refundOrderId = orderId;
+    document.getElementById('refundDialog').style.display = 'flex';
+  }
+
+  function closeRefundDialog() {
+    refundOrderId = null;
+    document.getElementById('refundDialog').style.display = 'none';
+  }
+
+  async function processRefund() {
+    if (!refundOrderId) return;
+    const btn = document.getElementById('refundConfirmBtn');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    try {
+      const res = await fetch(`/api/refund/${refundOrderId}`, { method: 'POST' });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast('Order refunded successfully!', 'success');
+        loadOrders();
+      } else {
+        showToast(data.error || 'Refund failed', 'error');
+      }
+    } catch (err) {
+      showToast('Refund failed', 'error');
+    } finally {
+      closeRefundDialog();
+      btn.disabled = false;
+      btn.textContent = 'Refund';
+    }
+  }
+
+  function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  // CSS animation for spinner
+  const style = document.createElement('style');
+  style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+  document.head.appendChild(style);
+
+  async function checkAuth() {
+    try {
+      const res = await fetch('/api/seller/check');
+      const data = await res.json();
+      if (!data.authenticated) {
+        window.location.href = '/seller/login';
+      }
+    } catch (_) {}
+  }
+
+  async function handleLogout() {
+    try {
+      await fetch('/api/seller/logout', { method: 'POST' });
+    } catch (_) {}
+    window.location.href = '/seller/login';
+  }
+
+  // Check auth and load on page init
+  checkAuth();
+  loadOrders();
+</script>
+</body>
+</html>
