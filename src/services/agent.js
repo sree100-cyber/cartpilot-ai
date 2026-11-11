@@ -321,13 +321,34 @@ async function callGemini(conversationHistory, tools) {
 }
 
 /**
- * Fallback conversational agent when GEMINI_API_KEY is not yet configured.
+ * Fallback conversational agent when GEMINI_API_KEY is not yet configured or offline.
  * Guarantees zero downtime and complete adherence to tools and guardrails.
  */
 function fallbackProcessMessage(message, sessionData) {
   const text = message.toLowerCase().trim();
 
-  // 1. Explicit Confirmation detection
+  // 1. Order Cancellation detection
+  if (/^(cancel|clear|nevermind|never mind|stop|restart|remove order|delete order|drop order|no)\b/i.test(text)) {
+    if (sessionData.currentOrderId) {
+      sessionData.currentOrderId = null;
+      sessionData.confirmed = false;
+      sessionData.checkoutReady = false;
+      return {
+        response: `Your order has been cancelled. Let me know if you'd like to check out any other items or browse our store!`,
+        sessionData,
+        orderId: null,
+        orderCancelled: true
+      };
+    }
+    return {
+      response: `No order is currently in progress. Feel free to ask what products we sell or tell me what you'd like!`,
+      sessionData,
+      orderId: null,
+      orderCancelled: true
+    };
+  }
+
+  // 2. Explicit Confirmation detection
   if (/^(yes|confirm|confirmed|proceed|looks good|go ahead|yep|sure|ok|okay|checkout|place order)\b/i.test(text)) {
     if (sessionData.currentOrderId) {
       sessionData.confirmed = true;
@@ -344,8 +365,25 @@ function fallbackProcessMessage(message, sessionData) {
     }
   }
 
-  // 2. Browse / What do you sell
-  if (text.includes('browse') || text.includes('what') || text.includes('sell') || text.includes('product') || text.includes('list') || text.includes('have')) {
+  // 3. Category Queries (Asking about candles, soaps, or bags without specifying a scent/type)
+  const isGenericCandleQuery = /\bcandles?\b/i.test(text) && !/\b(lavender|vanilla|ocean|breeze)\b/i.test(text);
+  if (isGenericCandleQuery) {
+    return {
+      response: `We offer 3 handcrafted artisan candles:\n\n• **Lavender Dream Candle** – $14.99 *(8oz French lavender & soy)*\n• **Vanilla Bean Candle** – $12.99 *(6oz warm Madagascar vanilla)*\n• **Ocean Breeze Candle** – $15.99 *(8oz sea salt & driftwood – only 2 left!)*\n\nWhich one would you like, and how many? *(e.g., "1 Lavender Dream Candle")*`,
+      sessionData
+    };
+  }
+
+  const isGenericSoapQuery = /\bsoaps?\b/i.test(text) && !/\b(honey|citrus|herbal)\b/i.test(text);
+  if (isGenericSoapQuery) {
+    return {
+      response: `We have 2 handcrafted soap products in our collection:\n\n• **Herbal Honey Soap Bar** – $8.99 *(Moisturizing wildflower honey & oats – In Stock)*\n• **Citrus Bliss Soap Set** – $18.99 *(Currently out of stock)*\n\nWould you like to order the **Herbal Honey Soap Bar**?`,
+      sessionData
+    };
+  }
+
+  // 4. General Browse / Catalog
+  if (text.includes('browse') || text.includes('what') || text.includes('sell') || text.includes('catalog') || text.includes('products') || text.includes('menu') || text.includes('have') || text === 'hi' || text === 'hello') {
     const catalog = executeListProducts().products;
     const itemsList = catalog.map(p => {
       let stockNote = p.stock === 0 ? ' *(Out of stock)*' : (p.lowStock ? ` *(Only ${p.stock} left!)*` : '');
@@ -353,31 +391,45 @@ function fallbackProcessMessage(message, sessionData) {
     }).join('\n\n');
 
     return {
-      response: `Here are our handcrafted products:\n\n${itemsList}\n\nWhat would you like to order today?`,
+      response: `👋 Welcome! Here are our artisan products:\n\n${itemsList}\n\nWhat would you like to order today? (e.g. "2 Lavender Dream Candles")`,
       sessionData
     };
   }
 
-  // 3. Check for specific products & quantities
-  const products = productService.getAllProducts();
+  // 5. Distinctive Product Keyword Detection & Parsing
+  const productKeywordMap = [
+    { name: 'Lavender Dream Candle', keywords: ['lavender'] },
+    { name: 'Vanilla Bean Candle', keywords: ['vanilla'] },
+    { name: 'Ocean Breeze Candle', keywords: ['ocean', 'breeze'] },
+    { name: 'Canvas Tote Bag', keywords: ['tote', 'canvas bag'] },
+    { name: 'Citrus Bliss Soap Set', keywords: ['citrus'] },
+    { name: 'Herbal Honey Soap Bar', keywords: ['honey', 'herbal honey', 'soap bar'] },
+  ];
+
   const matchedItems = [];
 
-  // Parse numbers and product mentions
-  for (const p of products) {
-    const words = p.name.toLowerCase().split(' ');
-    const isMentioned = words.some(w => w.length > 3 && text.includes(w));
-    if (isMentioned) {
-      // Find quantity near product
+  for (const item of productKeywordMap) {
+    const matchedKeyword = item.keywords.find(kw => text.includes(kw));
+    if (matchedKeyword) {
+      // Extract quantity
       let qty = 1;
-      const regex = new RegExp(`(\\d+)\\s*(?:x\\s*)?${words[0]}`, 'i');
-      const numMatch = text.match(regex);
-      if (numMatch) {
-        qty = parseInt(numMatch[1], 10);
+      // Try finding number before keyword e.g. "2 lavender", "3x vanilla"
+      const regexBefore = new RegExp(`(\\d+)\\s*(?:x\\s*)?${matchedKeyword}`, 'i');
+      const matchBefore = text.match(regexBefore);
+      if (matchBefore) {
+        qty = parseInt(matchBefore[1], 10);
       } else {
-        const anyNum = text.match(/\b(\d+)\b/);
-        if (anyNum) qty = parseInt(anyNum[1], 10);
+        // Try finding "a lavender" or "an ocean" -> 1
+        const aRegex = new RegExp(`\\b(?:a|an|one)\\s+${matchedKeyword}`, 'i');
+        if (aRegex.test(text)) {
+          qty = 1;
+        } else {
+          // Look for any isolated number in the text
+          const anyNum = text.match(/\b(\d+)\b/);
+          if (anyNum) qty = parseInt(anyNum[1], 10);
+        }
       }
-      matchedItems.push({ product_name: p.name, quantity: qty });
+      matchedItems.push({ product_name: item.name, quantity: qty });
     }
   }
 
@@ -388,7 +440,7 @@ function fallbackProcessMessage(message, sessionData) {
       if (!stockCheck.found || !stockCheck.available) {
         let msg = stockCheck.message;
         if (stockCheck.alternatives) {
-          msg += '\n\nHere are available alternatives:\n' + stockCheck.alternatives.map(a => `• **${a.name}** ($${a.price.toFixed(2)})`).join('\n');
+          msg += '\n\nHere are available in-stock alternatives:\n' + stockCheck.alternatives.map(a => `• **${a.name}** ($${a.price.toFixed(2)})`).join('\n');
         }
         return { response: msg, sessionData };
       }
@@ -406,7 +458,7 @@ function fallbackProcessMessage(message, sessionData) {
       ).join('\n');
 
       return {
-        response: `Got it! Here is your order summary:\n\n${lines}\n\n**Total: $${orderResult.order.total.toFixed(2)}**\n\nWould you like to confirm this order and proceed to PayPal checkout?`,
+        response: `Got it! Here is your order summary:\n\n${lines}\n\n**Total: $${orderResult.order.total.toFixed(2)}**\n\nWould you like to confirm this order and proceed to PayPal checkout? (Say "yes" or click Confirm & Pay below)`,
         sessionData,
         orderId: orderResult.order.id
       };
@@ -423,6 +475,22 @@ function fallbackProcessMessage(message, sessionData) {
  * Process incoming chat messages
  */
 async function processMessage(message, sessionHistory, sessionData) {
+  // If user typed cancellation words, clear active order immediately
+  if (/^(cancel|clear|nevermind|never mind|stop|restart|remove order|delete order|drop order)\b/i.test(message.trim())) {
+    if (sessionData.currentOrderId) {
+      sessionData.currentOrderId = null;
+      sessionData.confirmed = false;
+      sessionData.checkoutReady = false;
+      return {
+        response: "Your order has been cancelled. Feel free to browse our products or let me know what else you'd like!",
+        sessionHistory,
+        sessionData,
+        orderId: null,
+        orderCancelled: true
+      };
+    }
+  }
+
   // If user typed explicit confirmation words, update flag immediately
   if (/^(yes|confirm|confirmed|proceed|looks good|go ahead|yep|sure|ok|okay)\b/i.test(message.trim())) {
     if (sessionData.currentOrderId) {
@@ -442,7 +510,8 @@ async function processMessage(message, sessionHistory, sessionData) {
       response: result.response,
       sessionHistory,
       sessionData: result.sessionData,
-      orderId: result.orderId
+      orderId: result.orderId,
+      orderCancelled: result.orderCancelled
     };
   }
 
@@ -527,7 +596,8 @@ async function processMessage(message, sessionHistory, sessionData) {
       response: result.response,
       sessionHistory,
       sessionData: result.sessionData,
-      orderId: result.orderId
+      orderId: result.orderId,
+      orderCancelled: result.orderCancelled
     };
   }
 }

@@ -49,10 +49,11 @@ router.post('/api/chat', async (req, res) => {
       response: result.response,
       orderId: session.data.currentOrderId,
       checkoutReady: session.data.checkoutReady,
+      orderCancelled: Boolean(result.orderCancelled),
     };
 
-    // Include order details whenever an order is active
-    if (session.data.currentOrderId) {
+    // Include order details whenever an order is active and not cancelled
+    if (session.data.currentOrderId && !result.orderCancelled) {
       const order = orderService.getOrder(session.data.currentOrderId);
       if (order) {
         response.order = {

@@ -821,13 +821,18 @@
         addMessage(data.response, false);
         speakReply(data.response);
 
-        if (data.orderId) {
+        if (data.orderId && !data.orderCancelled) {
           currentOrderId = data.orderId;
+        } else if (data.orderCancelled || !data.orderId) {
+          currentOrderId = null;
         }
 
-        // Show or update order card if an order is active
-        if (data.order) {
+        // Show, update, or remove order card
+        if (data.order && !data.orderCancelled) {
           showOrderCard(data.order, data.checkoutReady);
+        } else {
+          const existing = document.getElementById('orderCard');
+          if (existing) existing.remove();
         }
       }
     } catch (err) {
