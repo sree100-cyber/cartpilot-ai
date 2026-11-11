@@ -78,7 +78,7 @@ Small artisanal sellers (craft shops, independent makers, boutique retailers) re
 
 ## 🛠️ AI Tools Used and How
 
-CartPilot AI uses Google Gemini (`gemini-2.5-flash`) with structured **Function/Tool Calling**:
+CartPilot AI uses Google Gemini (`gemini-3.5-flash`) with structured **Function/Tool Calling**:
 
 | Tool Name | Parameters | Purpose | Guardrails Enforced |
 |-----------|------------|---------|---------------------|
@@ -114,7 +114,7 @@ Edit `.env`:
 ```env
 # Gemini API Key (get from https://aistudio.google.com/)
 GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.5-flash
 
 # PayPal Sandbox Credentials (from https://developer.paypal.com/)
 PAYPAL_CLIENT_ID=your_paypal_sandbox_client_id

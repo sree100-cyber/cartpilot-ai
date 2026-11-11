@@ -289,8 +289,9 @@ function isGeminiConfigured() {
  */
 async function callGemini(conversationHistory, tools) {
   const apiKey = process.env.GEMINI_API_KEY;
-  let model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-  if (model === 'gemini-2.0-flash') model = 'gemini-2.5-flash';
+  let model = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+  // Auto-correct deprecated model names
+  if (model === 'gemini-2.0-flash' || model === 'gemini-2.5-flash') model = 'gemini-3.5-flash';
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
@@ -630,8 +631,8 @@ async function generateOrderSummary(orders, products) {
 
   try {
     const apiKey = process.env.GEMINI_API_KEY;
-    let model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-    if (model === 'gemini-2.0-flash') model = 'gemini-2.5-flash';
+    let model = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+    if (model === 'gemini-2.0-flash' || model === 'gemini-2.5-flash') model = 'gemini-3.5-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const dataPrompt = `You are a store analytics assistant for a merchant. Summarize the following factual store data. STRICT RULE: ONLY use numbers from the provided data. Never fabricate metrics.
